@@ -6,7 +6,8 @@ const subAdminSchema = new mongoose.Schema({
     required: true,
     unique: true,
     trim: true,
-    lowercase: true
+    lowercase: true,
+    index: true
   },
   password: {
     type: String,
@@ -43,8 +44,7 @@ const subAdminSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Index for email lookups
-subAdminSchema.index({ email: 1 });
+// Additional indexes can be added here if needed
 
 // Method to check if sub-admin has a specific permission
 subAdminSchema.methods.hasPermission = function(permission) {

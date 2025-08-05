@@ -17,7 +17,8 @@ const transactionSchema = new mongoose.Schema(
     },  
     reference: {
       type: String,
-      unique: true
+      unique: true,
+      index: true
     }, 
     metadata: {
       type: mongoose.Schema.Types.Mixed,
@@ -31,6 +32,5 @@ const transactionSchema = new mongoose.Schema(
 
 // Index for faster queries
 transactionSchema.index({ user: 1, createdAt: -1 });
-transactionSchema.index({ reference: 1 });
 
 module.exports = mongoose.model("Transaction", transactionSchema); 
