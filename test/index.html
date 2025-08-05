@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Qiimeet User Test</title>
+</head>
+<body>
+  <h1>Qiimeet User Test</h1>
+
+  <section>
+    <h2>Register Phone</h2>
+    <form id="registerForm">
+      <input type="text" id="phone" placeholder="Phone number" required>
+      <button type="submit">Register</button>
+    </form>
+    <div id="registerResult"></div>
+  </section>
+
+  <section>
+    <h2>View Profile</h2>
+    <button id="viewProfileBtn">View My Profile</button>
+    <pre id="profileResult"></pre>
+  </section>
+
+  <section>
+    <h2>Update Profile</h2>
+    <form id="updateForm">
+      <input type="text" id="username" placeholder="Username">
+      <input type="text" id="goal" placeholder="Goal">
+      <input type="text" id="height" placeholder="Height">
+      <input type="text" id="interests" placeholder="Interests (comma separated)">
+      <input type="text" id="kidsPreference" placeholder="Kids Preference">
+      <input type="text" id="kids" placeholder="Kids">
+      <input type="text" id="career" placeholder="Career">
+      <input type="text" id="zodiac" placeholder="Zodiac">
+      <input type="text" id="education" placeholder="Education">
+      <input type="text" id="personality" placeholder="Personality">
+      <input type="text" id="lifestyle" placeholder="Lifestyle (comma separated)">
+      <input type="text" id="location" placeholder="Location">
+      <input type="number" id="age" placeholder="Age">
+      <input type="text" id="religion" placeholder="Religion">
+      <input type="date" id="dateOfBirth" placeholder="Date of Birth">
+      <input type="text" id="profilePictures" placeholder="Profile Pictures (comma separated URLs)">
+      <button type="submit">Update Profile</button>
+    </form>
+    <div id="updateResult"></div>
+  </section>
+
+  <section>
+    <h2>Delete Profile</h2>
+    <button id="deleteProfileBtn">Delete My Profile</button>
+    <div id="deleteResult"></div>
+  </section>
+
+  <section>
+    <h2>Test Axios Register</h2>
+    <button id="axiosRegisterBtn">Register with Axios</button>
+    <div id="axiosRegisterResult"></div>
+  </section>
+
+  <script>
+    const API = 'http://qiimeet-env.eba-cai7crfr.us-east-1.elasticbeanstalk.com/api/auth'; // <-- update this to your actual Elastic Beanstalk URL
+
+    // Register
+    document.getElementById('registerForm').onsubmit = async (e) => {
+      e.preventDefault();
+      const phone = document.getElementById('phone').value;
+      const res = await fetch(`${API}/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone })
+      });
+      const data = await res.json();
+      if (data.token) {
+        localStorage.setItem('token', data.token);
+        document.getElementById('registerResult').innerText = 'Registered! Token saved.';
+      } else {
+        document.getElementById('registerResult').innerText = data.error || 'Registration failed';
+      }
+    };
+
+    // View Profile
+    document.getElementById('viewProfileBtn').onclick = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) return alert('Register first!');
+      const res = await fetch(`${API}/me`, {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      const data = await res.json();
+      document.getElementById('profileResult').innerText = JSON.stringify(data, null, 2);
+    };
+
+    // Update Profile
+    document.getElementById('updateForm').onsubmit = async (e) => {
+      e.preventDefault();
+      const token = localStorage.getItem('token');
+      if (!token) return alert('Register first!');
+      const body = {
+        username: document.getElementById('username').value,
+        gender: document.getElementById('gender').value,
+        goal: document.getElementById('goal').value,
+        height: document.getElementById('height').value,
+        interests: document.getElementById('interests').value.split(',').map(s => s.trim()).filter(Boolean),
+        kidsPreference: document.getElementById('kidsPreference').value,
+        kids: document.getElementById('kids').value,
+        career: document.getElementById('career').value,
+        zodiac: document.getElementById('zodiac').value,
+        education: document.getElementById('education').value,
+        personality: document.getElementById('personality').value,
+        lifestyle: document.getElementById('lifestyle').value.split(',').map(s => s.trim()).filter(Boolean),
+        location: document.getElementById('location').value,
+        age: document.getElementById('age').value ? Number(document.getElementById('age').value) : undefined,
+        religion: document.getElementById('religion').value,
+        dateOfBirth: document.getElementById('dateOfBirth').value,
+        profilePictures: document.getElementById('profilePictures').value.split(',').map(s => s.trim()).filter(Boolean),
+      };
+      const res = await fetch(`${API}/update`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + token
+        },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      document.getElementById('updateResult').innerText = data.error ? data.error : 'Profile updated!';
+    };
+
+    // Delete Profile
+    document.getElementById('deleteProfileBtn').onclick = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) return alert('Register first!');
+      const res = await fetch(`${API}/delete`, {
+        method: 'DELETE',
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      const data = await res.json();
+      document.getElementById('deleteResult').innerText = data.message || data.error;
+      if (data.message) localStorage.removeItem('token');
+    };
+
+    // Axios Register Test
+    document.getElementById('axiosRegisterBtn').onclick = async () => {
+      try {
+        // Make sure axios is available
+        if (typeof axios === 'undefined') {
+          document.getElementById('axiosRegisterResult').innerText = 'Axios is not loaded.';
+          return;
+        }
+        const response = await axios.post('http://qiimeet-env.eba-cai7crfr.us-east-1.elasticbeanstalk.com/api/auth/register', { phone: '09088989889' });
+        console.log(response.data);
+        document.getElementById('axiosRegisterResult').innerText = JSON.stringify(response.data, null, 2);
+      } catch (err) {
+        document.getElementById('axiosRegisterResult').innerText = err.message;
+      }
+    };
+  </script>
+  <!-- Add axios CDN for browser usage -->
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</body>
+</html>
